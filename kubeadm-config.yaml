@@ -1,0 +1,15 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+kubernetesVersion: v1.35.0                              # 指定 Kubernetes 版本，按需修改
+networking:
+  podSubnet: 10.244.0.0/16                               # 对应 --pod-network-cidr
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+housekeepingInterval: 1s                                   # 设置 cAdvisor 内部更新间隔为 1 秒
+cgroupDriver: systemd                                      # 必须与容器运行时一致，通常为 systemd
+# 可以在此添加其他 kubelet 配置，如 maxPods、evictionHard 等
+evictionHard:
+  nodefs.available: 5%
+  imagefs.available: 5%
