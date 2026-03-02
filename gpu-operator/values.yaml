@@ -1,0 +1,23 @@
+driver:
+  enabled: false
+
+toolkit:
+  enabled: false
+
+devicePlugin:
+  enabled: true
+  compatWithCPUManager: true
+
+  config:
+    create: true
+    name: device-plugin-config
+    default: default
+    data:
+      default: |-
+        version: v1
+        flags:
+          migStrategy: none
+          failOnInitError: false
+          deviceListStrategy: cdi
+          deviceIDStrategy: uuid
+          passDeviceSpecs: true
