@@ -1,0 +1,18 @@
+kubelet:
+  serviceMonitor:
+    enabled: true
+    interval: 1s       # 修改 kubelet 的采集间隔
+
+# 暴露查询端口
+prometheus: 
+  service:
+    type: NodePort
+    port: 9090
+    targetPort: 9090
+    nodePort: 30090
+
+
+
+
+
+# helm upgrade prom prometheus-community/kube-prometheus-stack  -n monitoring -f kube_values.yaml
