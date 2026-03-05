@@ -27,6 +27,12 @@ devicePlugin:
 
 dcgmExporter:
   enabled: true
+
+  # 控制内部采样器的间隔(ms)
+  env:
+    - name: DCGM_EXPORTER_INTERVAL
+      value: "1000"
+  
   serviceMonitor:
     enabled: true
     interval: 1s
