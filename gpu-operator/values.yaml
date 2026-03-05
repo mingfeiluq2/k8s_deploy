@@ -4,6 +4,9 @@ driver:
 toolkit:
   enabled: false
 
+cdi:
+  enabled: false
+
 devicePlugin:
   enabled: true
   compatWithCPUManager: true
@@ -18,6 +21,8 @@ devicePlugin:
         flags:
           migStrategy: none
           failOnInitError: false
-          deviceListStrategy: cdi
+          deviceListStrategy: envvar
           deviceIDStrategy: uuid
           passDeviceSpecs: true
+
+        
