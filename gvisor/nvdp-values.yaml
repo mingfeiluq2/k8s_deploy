@@ -1,0 +1,9 @@
+gfd:
+  enabled: true
+devicePlugin:
+  enabled: true
+
+  env:
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: "0"
+compatWithCPUManager: true

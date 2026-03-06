@@ -1,6 +1,14 @@
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
 extraEnv:
   - name: DCGM_EXPORTER_INTERVAL
-    value: "900"
+    value: "1000"
 
 serviceMonitor:
   enabled: true

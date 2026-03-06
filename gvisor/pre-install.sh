@@ -3,6 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROM_CONFIG_FILE="$SCRIPT_DIR/prometheus-config/prom_values.yaml"
 DCGM_CONFIG_FILE="$SCRIPT_DIR/dcgm-exporter-config/values.yaml"
+NVDP_CONFIG_FILE="$SCRIPT_DIR/nvdp-values.yaml"
 
 helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

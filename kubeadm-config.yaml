@@ -11,5 +11,5 @@ housekeepingInterval: 1s                                   # 设置 cAdvisor 内
 cgroupDriver: systemd                                      # 必须与容器运行时一致，通常为 systemd
 # 可以在此添加其他 kubelet 配置，如 maxPods、evictionHard 等
 evictionHard:
-  nodefs.available: 5%
-  imagefs.available: 5%
+  nodefs.available: 0%
+  imagefs.available: 0%
