@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nvidia-kata-sandbox-device-plugin-noinit
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-kata-sandbox-device-plugin-noinit
+  labels:
+    app: nvidia-kata-sandbox-device-plugin-noinit
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-kata-sandbox-device-plugin-noinit
+  template:
+    metadata:
+      labels:
+        app: nvidia-kata-sandbox-device-plugin-noinit
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: nvidia-kata-sandbox-device-plugin-noinit
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+
+      # 建议只调度到你的目标节点，避免所有节点都启动 device plugin。
+      # 如果你的节点名不是 server，改成实际 node name。
+      nodeSelector:
+        kubernetes.io/hostname: server
+
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - operator: Exists
+
+      containers:
+      - name: nvidia-kata-sandbox-device-plugin-ctr
+        image: nvcr.io/nvidia/cloud-native/nvidia-sandbox-device-plugin:v0.0.3
+        imagePullPolicy: IfNotPresent
+
+        securityContext:
+          privileged: true
+
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+
+        volumeMounts:
+        - name: device-plugin
+          mountPath: /var/lib/kubelet/device-plugins
+        - name: cdi-root
+          mountPath: /var/run/cdi
+        - name: dev-vfio
+          mountPath: /dev/vfio
+
+      volumes:
+      - name: device-plugin
+        hostPath:
+          path: /var/lib/kubelet/device-plugins
+          type: Directory
+      - name: cdi-root
+        hostPath:
+          path: /var/run/cdi
+          type: DirectoryOrCreate
+      - name: dev-vfio
+        hostPath:
+          path: /dev/vfio
+          type: DirectoryOrCreate

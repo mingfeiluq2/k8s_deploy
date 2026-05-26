@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runtime-iperf3-client
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      runtimeClassName: runc
+      restartPolicy: Never
+      containers:
+      - name: iperf3
+        image: networkstatic/iperf3
+        command: ["iperf3"]
+        args:
+        - "-c"
+        - "iperf3-server"
+        - "-t"
+        - "60"
+        - "-P"
+        - "4"
+        resources:
+          requests:
+            cpu: "8"
+            memory: "32Gi"
+          limits:
+            cpu: "8"
+            memory: "32Gi"

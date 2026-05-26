@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runtime-startup-alpine
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      runtimeClassName: runc
+      restartPolicy: Never
+      containers:
+      - name: startup
+        image: alpine:3.20
+        command: ["true"]
+        resources:
+          requests:
+            cpu: "16"
+            memory: "64Gi"
+          limits:
+            cpu: "16"
+            memory: "64Gi"

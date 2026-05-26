@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runc-sysbench-cpu-paper-runc
+  namespace: default
+  labels:
+    bench: sysbench-cpu-paper
+    runtime: runc
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        bench: sysbench-cpu-paper
+        runtime: runc
+        app: runc-sysbench-cpu-paper
+    spec:
+      nodeName: server
+      restartPolicy: Never
+      containers:
+      - name: sysbench
+        image: severalnines/sysbench
+        resources:
+          requests:
+            cpu: "16"
+            memory: "16Gi"
+          limits:
+            cpu: "16"
+            memory: "16Gi"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "runtime=runc"
+          echo "date_start=$(date -Iseconds)"
+          echo "nproc=$(nproc)"
+          echo "cpu.max=$(cat /sys/fs/cgroup/cpu.max 2>/dev/null || true)"
+          sysbench --version
+          sysbench cpu \
+            --threads=1 \
+            --time=600 \
+            --cpu-max-prime=200000 \
+            run
+          echo "date_end=$(date -Iseconds)"

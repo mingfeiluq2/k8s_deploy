@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runtime-fio-randrw
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      runtimeClassName: kata-qemu-nvidia-gpu
+      restartPolicy: Never
+      containers:
+      - name: fio
+        image: ljishen/fio
+        command: ["fio"]
+        args:
+        - "--name=randrw"
+        - "--directory=/data"
+        - "--rw=randrw"
+        - "--bs=4k"
+        - "--size=1G"
+        - "--iodepth=32"
+        - "--numjobs=4"
+        - "--runtime=60"
+        - "--time_based"
+        - "--group_reporting"
+        - "--direct=0"
+        resources:
+          requests:
+            cpu: "16"
+            memory: "64Gi"
+          limits:
+            cpu: "16"
+            memory: "64Gi"
+        volumeMounts:
+        - name: fio-data
+          mountPath: /data
+      volumes:
+      - name: fio-data
+        emptyDir: {}

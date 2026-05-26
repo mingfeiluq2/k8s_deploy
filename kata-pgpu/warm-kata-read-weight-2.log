@@ -1,0 +1,30 @@
+Linux kata-fio 6.18.15-nvidia-gpu #1 SMP Sat Apr 18 10:31:48 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+kata-ok
+start simulating model weight load from /model
+model files:
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00001-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00002-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.1G May  7 06:28 /model/model.safetensors-00003-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 3.1G May  7 06:29 /model/model.safetensors-00004-of-00004.safetensors
+reading model weights sequentially...
+loading: /model/model.safetensors-00001-of-00004.safetensors
+939524096 bytes (940 MB, 896 MiB) copied, 1 s, 917 MB/s1946157056 bytes (1.9 GB, 1.8 GiB) copied, 2 s, 942 MB/s2818572288 bytes (2.8 GB, 2.6 GiB) copied, 3 s, 927 MB/s3623878656 bytes (3.6 GB, 3.4 GiB) copied, 4 s, 889 MB/s4496293888 bytes (4.5 GB, 4.2 GiB) copied, 5 s, 891 MB/s
+78+1 records in
+78+1 records out
+5276436216 bytes (5.3 GB, 4.9 GiB) copied, 5.84717 s, 902 MB/s
+loading: /model/model.safetensors-00002-of-00004.safetensors
+872415232 bytes (872 MB, 832 MiB) copied, 1 s, 864 MB/s1677721600 bytes (1.7 GB, 1.6 GiB) copied, 2 s, 818 MB/s2483027968 bytes (2.5 GB, 2.3 GiB) copied, 3 s, 806 MB/s3825205248 bytes (3.8 GB, 3.6 GiB) copied, 4 s, 950 MB/s
+79+1 records in
+79+1 records out
+5335161512 bytes (5.3 GB, 5.0 GiB) copied, 4.84691 s, 1.1 GB/s
+loading: /model/model.safetensors-00003-of-00004.safetensors
+2080374784 bytes (2.1 GB, 1.9 GiB) copied, 1 s, 2.0 GB/s4026531840 bytes (4.0 GB, 3.8 GiB) copied, 2 s, 2.0 GB/s
+80+1 records in
+80+1 records out
+5368717440 bytes (5.4 GB, 5.0 GiB) copied, 2.75883 s, 1.9 GB/s
+loading: /model/model.safetensors-00004-of-00004.safetensors
+1879048192 bytes (1.9 GB, 1.8 GiB) copied, 1 s, 1.8 GB/s
+49+1 records in
+49+1 records out
+3325995712 bytes (3.3 GB, 3.1 GiB) copied, 1.84441 s, 1.8 GB/s
+model weight load simulation done

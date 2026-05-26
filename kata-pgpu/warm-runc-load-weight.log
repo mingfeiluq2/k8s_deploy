@@ -1,0 +1,29 @@
+Linux runc-fio 6.8.0-111-generic #111~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 14 17:13:45 UTC  x86_64 x86_64 x86_64 GNU/Linux
+kata-ok
+start simulating model weight load from /model
+model files:
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00001-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00002-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.1G May  7 06:28 /model/model.safetensors-00003-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 3.1G May  7 06:29 /model/model.safetensors-00004-of-00004.safetensors
+reading model weights sequentially...
+loading: /model/model.safetensors-00001-of-00004.safetensors
+3825205248 bytes (3.8 GB, 3.6 GiB) copied, 1 s, 3.8 GB/s
+78+1 records in
+78+1 records out
+5276436216 bytes (5.3 GB, 4.9 GiB) copied, 1.37781 s, 3.8 GB/s
+loading: /model/model.safetensors-00002-of-00004.safetensors
+3892314112 bytes (3.9 GB, 3.6 GiB) copied, 1 s, 3.8 GB/s
+79+1 records in
+79+1 records out
+5335161512 bytes (5.3 GB, 5.0 GiB) copied, 1.37047 s, 3.9 GB/s
+loading: /model/model.safetensors-00003-of-00004.safetensors
+3892314112 bytes (3.9 GB, 3.6 GiB) copied, 1 s, 3.8 GB/s
+80+1 records in
+80+1 records out
+5368717440 bytes (5.4 GB, 5.0 GiB) copied, 1.38559 s, 3.9 GB/s
+loading: /model/model.safetensors-00004-of-00004.safetensors
+49+1 records in
+49+1 records out
+3325995712 bytes (3.3 GB, 3.1 GiB) copied, 0.854911 s, 3.9 GB/s
+model weight load simulation done

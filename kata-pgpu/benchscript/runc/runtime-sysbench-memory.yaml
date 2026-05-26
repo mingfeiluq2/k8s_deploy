@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runtime-sysbench-memory
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      runtimeClassName: runc
+      restartPolicy: Never
+      containers:
+      - name: sysbench
+        image: severalnines/sysbench
+        command: ["sysbench"]
+        args:
+        - "memory"
+        - "--threads=4"
+        - "--time=60"
+        - "run"
+        resources:
+          requests:
+            cpu: "16"
+            memory: "64Gi"
+          limits:
+            cpu: "16"
+            memory: "64Gi"

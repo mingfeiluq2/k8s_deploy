@@ -1,0 +1,7 @@
+stress-ng: info:  [1] dispatching hogs: 4 fork, 4 switch
+stress-ng: info:  [1] cache allocate: default cache size: 16384K
+stress-ng: info:  [1] successful run completed in 60.00s (1 min, 0.00 secs)
+stress-ng: info:  [1] stressor       bogo ops real time  usr time  sys time   bogo ops/s   bogo ops/s
+stress-ng: info:  [1]                           (secs)    (secs)    (secs)   (real time) (usr+sys time)
+stress-ng: info:  [1] fork             763224     60.00    114.98    127.93     12720.38      3142.00
+stress-ng: info:  [1] switch         24243696     60.00      8.06    102.12    404059.95    220037.18

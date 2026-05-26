@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: runc-fio
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    kubernetes.io/hostname: server
+  containers:
+  - name: c
+    image: openeuler/fio:3.41-oe2403sp2
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+    
+        uname -a
+        echo kata-ok
+        echo "start simulating model weight load from /model"
+    
+        echo "model files:"
+        for f in /model/*.safetensors /model/*.bin /model/*.pt /model/*.pth /model/*.gguf; do
+          [ -f "$f" ] || continue
+          ls -lh "$f"
+        done
+    
+        echo "reading model weights sequentially..."
+    
+        for f in /model/*.safetensors /model/*.bin /model/*.pt /model/*.pth /model/*.gguf; do
+          [ -f "$f" ] || continue
+          echo "loading: $f"
+          dd if="$f" of=/dev/null bs=64M iflag=fullblock status=progress
+        done
+    
+        echo "model weight load simulation done"
+        sleep 3600
+    ports:
+      - containerPort: 8000
+    volumeMounts:                          # <-- 新增：容器内挂载配置
+      - name: model-volume
+        mountPath: /model      # 对应脚本中的 CONTAINER_MODEL_DIR
+        readOnly: true                     # 脚本中 options=rbind:ro
+      - name: trace-volume
+        mountPath: /traces                 # 对应脚本中的 CONTAINER_TRACE_DIR
+        # 默认读写，不需要显式声明 readOnly
+  volumes:                                   # <-- 新增：卷定义
+    - name: model-volume
+      hostPath:
+        path: /home/liulei/models/Qwen/Qwen3___5-9B   # 对应脚本中的 MODEL_DIR
+        type: Directory                      # 必须为已存在的目录（脚本已检查）
+    - name: trace-volume
+      hostPath:
+        path: /data/home/liulei/TcProject/ctr-container/traces  # 对应脚本中的 TRACE_DIR
+        type: DirectoryOrCreate              # 不存在时自动创建，允许读写
+        

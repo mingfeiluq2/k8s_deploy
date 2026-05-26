@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: runtime-cpu-stress-ng
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      runtimeClassName: runc
+      restartPolicy: Never
+      containers:
+      - name: stress-ng
+        image: polinux/stress-ng
+        args:
+          - "--cpu"
+          - "4"
+          - "--timeout"
+          - "60"
+          - "--metrics-brief"
+        resources:
+          requests:
+            cpu: "16"
+            memory: "64Gi"
+          limits:
+            cpu: "16"
+            memory: "64Gi"

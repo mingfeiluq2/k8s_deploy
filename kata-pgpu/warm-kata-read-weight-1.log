@@ -1,0 +1,30 @@
+Linux kata-fio 6.18.15-nvidia-gpu #1 SMP Sat Apr 18 10:31:48 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+kata-ok
+start simulating model weight load from /model
+model files:
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00001-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.0G May  7 06:29 /model/model.safetensors-00002-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 5.1G May  7 06:28 /model/model.safetensors-00003-of-00004.safetensors
+-rw-rw-r-- 1 1010 1010 3.1G May  7 06:29 /model/model.safetensors-00004-of-00004.safetensors
+reading model weights sequentially...
+loading: /model/model.safetensors-00001-of-00004.safetensors
+872415232 bytes (872 MB, 832 MiB) copied, 1 s, 819 MB/s1811939328 bytes (1.8 GB, 1.7 GiB) copied, 2 s, 882 MB/s2684354560 bytes (2.7 GB, 2.5 GiB) copied, 3 s, 878 MB/s3489660928 bytes (3.5 GB, 3.2 GiB) copied, 4 s, 864 MB/s4294967296 bytes (4.3 GB, 4.0 GiB) copied, 5 s, 859 MB/s5167382528 bytes (5.2 GB, 4.8 GiB) copied, 6 s, 856 MB/s
+78+1 records in
+78+1 records out
+5276436216 bytes (5.3 GB, 4.9 GiB) copied, 6.16085 s, 856 MB/s
+loading: /model/model.safetensors-00002-of-00004.safetensors
+805306368 bytes (805 MB, 768 MiB) copied, 1 s, 787 MB/s1677721600 bytes (1.7 GB, 1.6 GiB) copied, 2 s, 827 MB/s2550136832 bytes (2.6 GB, 2.4 GiB) copied, 3 s, 834 MB/s3892314112 bytes (3.9 GB, 3.6 GiB) copied, 4 s, 970 MB/s
+79+1 records in
+79+1 records out
+5335161512 bytes (5.3 GB, 5.0 GiB) copied, 4.86354 s, 1.1 GB/s
+loading: /model/model.safetensors-00003-of-00004.safetensors
+1610612736 bytes (1.6 GB, 1.5 GiB) copied, 1 s, 1.6 GB/s3355443200 bytes (3.4 GB, 3.1 GiB) copied, 2 s, 1.7 GB/s4966055936 bytes (5.0 GB, 4.6 GiB) copied, 3 s, 1.6 GB/s
+80+1 records in
+80+1 records out
+5368717440 bytes (5.4 GB, 5.0 GiB) copied, 3.28053 s, 1.6 GB/s
+loading: /model/model.safetensors-00004-of-00004.safetensors
+1811939328 bytes (1.8 GB, 1.7 GiB) copied, 1 s, 1.8 GB/s
+49+1 records in
+49+1 records out
+3325995712 bytes (3.3 GB, 3.1 GiB) copied, 1.87357 s, 1.8 GB/s
+model weight load simulation done
