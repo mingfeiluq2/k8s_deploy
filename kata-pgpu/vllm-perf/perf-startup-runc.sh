@@ -53,6 +53,20 @@ cleanup() {
 trap cleanup EXIT
 
 # ============================================================
+# 计时工具 — 从 epoch 秒转为可读格式
+# ============================================================
+now_sec() {
+    date +%s.%N
+}
+
+elapsed_since() {
+    local start="$1"
+    local end
+    end=$(now_sec)
+    printf "%.2f" "$(echo "${end} - ${start}" | bc -l 2>/dev/null || awk "BEGIN {printf \"%.2f\", ${end} - ${start}}")"
+}
+
+# ============================================================
 # 准备工作
 # ============================================================
 mkdir -p "${LOG_DIR}"
@@ -87,3 +101,73 @@ fi
 if ! perf stat true 2>/dev/null; then
     echo "提示: perf 可能权限不足，请以 root 运行或调整 /proc/sys/kernel/perf_event_paranoid"
 fi
+
+# ============================================================
+# 阶段 1: K8s 调度（分解为 3 个子阶段）
+# ============================================================
+T_APPLY=$(now_sec)
+echo "==> [T_apply] 启动 Pod"
+kubectl apply -f "${POD_YAML}"
+
+# 子阶段 1: API 提交 (apply → Pod 对象可见)
+echo -n "==> [子阶段1] 等待 Pod 对象创建"
+for i in $(seq 1 60); do
+    if kubectl get pod "${POD_NAME}" -o name &>/dev/null; then
+        T_CREATED=$(now_sec)
+        SUB1_TIME=$(elapsed_since "${T_APPLY}")
+        echo ""
+        echo "    Pod 对象已创建: ${SUB1_TIME}s"
+        break
+    fi
+    if [ "$i" -eq 60 ]; then
+        echo ""
+        echo "错误: Pod 在 60s 内未创建"
+        exit 1
+    fi
+    echo -n "."
+    sleep 1
+done
+
+# 子阶段 2: 调度分配 (Pod 可见 → 节点已分配)
+echo -n "==> [子阶段2] 等待调度分配节点"
+for i in $(seq 1 60); do
+    node=$(kubectl get pod "${POD_NAME}" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+    if [ -n "${node}" ]; then
+        T_SCHEDULED=$(now_sec)
+        SUB2_TIME=$(elapsed_since "${T_CREATED}")
+        echo ""
+        echo "    已分配到节点 ${node}: ${SUB2_TIME}s"
+        break
+    fi
+    if [ "$i" -eq 60 ]; then
+        echo ""
+        echo "错误: Pod 在 60s 内未被调度"
+        kubectl describe pod "${POD_NAME}" 2>/dev/null || true
+        exit 1
+    fi
+    echo -n "."
+    sleep 1
+done
+
+# 子阶段 3: 容器启动 (节点已分配 → Pod Running)
+echo -n "==> [子阶段3] 等待容器启动"
+for i in $(seq 1 300); do
+    status=$(kubectl get pod "${POD_NAME}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Pending")
+    if [ "$status" = "Running" ]; then
+        T_RUNNING=$(now_sec)
+        SUB3_TIME=$(elapsed_since "${T_SCHEDULED}")
+        echo ""
+        echo "    Pod 已 Running: ${SUB3_TIME}s"
+        break
+    fi
+    if [ "$i" -eq 300 ]; then
+        echo ""
+        echo "错误: Pod 在 300s 内未进入 Running，当前状态: ${status}"
+        kubectl describe pod "${POD_NAME}" 2>/dev/null || true
+        exit 1
+    fi
+    echo -n "."
+    sleep 1
+done
+
+K8S_TOTAL=$(elapsed_since "${T_APPLY}")
