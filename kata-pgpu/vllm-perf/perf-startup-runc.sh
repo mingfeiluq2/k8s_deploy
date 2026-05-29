@@ -297,3 +297,99 @@ case "${PERF_MODE}" in
         start_perf_record
         ;;
 esac
+
+# ============================================================
+# 阶段 2 继续: vLLM 就绪检测
+# ============================================================
+echo ""
+echo "==> 等待 vLLM 服务就绪 (curl http://${POD_IP}:8000/health)"
+HEALTH_START=$(now_sec)
+while true; do
+    elapsed=$(elapsed_since "${HEALTH_START}")
+    if [ "$(printf '%.0f' "${elapsed}")" -ge "${STARTUP_TIMEOUT}" ]; then
+        echo ""
+        echo "错误: vLLM 在 ${STARTUP_TIMEOUT}s 内未就绪"
+        echo "最后几行日志:"
+        tail -20 "${VLLM_LOG}" 2>/dev/null || true
+        exit 1
+    fi
+
+    if curl -s --max-time 3 "http://${POD_IP}:8000/health" >/dev/null 2>&1; then
+        T_READY=$(now_sec)
+        echo ""
+        echo "    vLLM 服务已就绪!"
+        break
+    fi
+    echo -n "."
+    sleep 2
+done
+
+SUB4_TIME=$(elapsed_since "${T_RUNNING}")
+TOTAL_TIME=$(elapsed_since "${T_APPLY}")
+
+echo ""
+echo "==> 停止 perf 测量"
+# SIGINT 使 perf 输出结果后优雅退出
+[ -n "${PERF_STAT_PID}" ] && sudo kill -INT "${PERF_STAT_PID}" 2>/dev/null || true
+[ -n "${PERF_RECORD_PID}" ] && sudo kill -INT "${PERF_RECORD_PID}" 2>/dev/null || true
+
+# 等待 perf 进程退出
+[ -n "${PERF_STAT_PID}" ] && wait "${PERF_STAT_PID}" 2>/dev/null || true
+[ -n "${PERF_RECORD_PID}" ] && wait "${PERF_RECORD_PID}" 2>/dev/null || true
+
+# 停止日志捕获
+[ -n "${MAIN_LOG_PID}" ] && kill "${MAIN_LOG_PID}" 2>/dev/null || true
+
+echo ""
+echo "============================================================"
+echo "==> 启动耗时分解"
+echo "============================================================"
+echo ""
+echo "--- K8s 调度子阶段 ---"
+echo "  1. API 提交:      ${SUB1_TIME}s"
+echo "  2. 调度分配:      ${SUB2_TIME}s"
+echo "  3. 容器启动:      ${SUB3_TIME}s"
+echo "  K8s 调度合计:     ${K8S_TOTAL}s"
+echo ""
+echo "--- vLLM 就绪阶段 ---"
+echo "  4. vLLM 就绪:     ${SUB4_TIME}s"
+echo ""
+echo "--- 总计 ---"
+echo "  总启动时间:       ${TOTAL_TIME}s"
+echo ""
+
+# perf stat 结果
+if [ "${PERF_MODE}" = "stat" ] || [ "${PERF_MODE}" = "all" ]; then
+    echo "--- perf stat 结果 ---"
+    if [ -f "${STAT_OUTPUT}" ]; then
+        cat "${STAT_OUTPUT}"
+        echo ""
+        # 提取关键指标
+        echo "--- 关键指标摘要 ---"
+        grep -E "seconds time elapsed|instructions|cycles|cache-misses|branch-misses|cpu-migrations" "${STAT_OUTPUT}" 2>/dev/null || true
+    else
+        echo "    (perf stat 输出文件未生成)"
+    fi
+    echo ""
+fi
+
+# perf record 结果
+if [ "${PERF_MODE}" = "record" ] || [ "${PERF_MODE}" = "all" ]; then
+    echo "--- perf record 结果 ---"
+    if [ -f "${RECORD_FILE}" ]; then
+        echo "    record 数据已保存到: ${RECORD_FILE}"
+        RECORD_SIZE=$(du -h "${RECORD_FILE}" 2>/dev/null | cut -f1)
+        echo "    文件大小: ${RECORD_SIZE}"
+    else
+        echo "    (perf record 数据文件未生成)"
+    fi
+    echo ""
+fi
+
+echo "--- 输出文件 ---"
+echo "  完整日志:   ${LOG_FILE}"
+echo "  启动日志:   ${VLLM_LOG}"
+echo "  perf stat:  ${STAT_OUTPUT}"
+echo "  perf record: ${RECORD_FILE}"
+echo ""
+echo "==> $(date) 测量完成"
