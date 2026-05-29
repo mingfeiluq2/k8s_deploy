@@ -92,9 +92,9 @@ get_container_pid() {
 get_pod_cgroup_from_pid() {
     local pid="$1"
     local cgroup_line
-    cgroup_line=$(cat "/proc/${pid}/cgroup" 2>/dev/null)
+    cgroup_line=$(grep '^0::' "/proc/${pid}/cgroup" 2>/dev/null | head -1)
     if [ -z "${cgroup_line}" ]; then
-        echo "错误: 无法读取 /proc/${pid}/cgroup" >&2
+        echo "错误: 无法读取 /proc/${pid}/cgroup 或非 cgroup v2" >&2
         return 1
     fi
 
@@ -126,6 +126,12 @@ for cmd in kubectl crictl curl perf; do
     fi
 done
 
+# 检查 sudo 无密码访问
+if ! sudo -n true 2>/dev/null; then
+    echo "错误: sudo 需要无密码访问（用于 crictl / perf）"
+    exit 1
+fi
+
 # 验证 PERF_MODE
 case "${PERF_MODE}" in
     stat|record|all) ;;
@@ -152,6 +158,10 @@ exec 2>&1
 # ============================================================
 T_APPLY=$(now_sec)
 echo "==> [T_apply] 启动 Pod"
+if [ ! -f "${POD_YAML}" ]; then
+    echo "错误: Pod YAML 文件不存在: ${POD_YAML}"
+    exit 1
+fi
 kubectl apply -f "${POD_YAML}"
 
 # 子阶段 1: API 提交 (apply → Pod 对象可见)
