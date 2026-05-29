@@ -253,3 +253,56 @@ kubectl logs -f "${POD_NAME}" -c cuda-container > "${VLLM_LOG}" 2>&1 &
 MAIN_LOG_PID=$!
 echo "    日志 PID: ${MAIN_LOG_PID}"
 echo "    日志文件: ${VLLM_LOG}"
+
+# ============================================================
+# 阶段 2: 启动 perf 并按模式选择 stat / record
+# ============================================================
+echo ""
+echo "==> 启动 perf 测量"
+echo "    模式: ${PERF_MODE}"
+echo "    注意: perf 测量起点为 cgroup 解析完成后，K8s 调度阶段不在覆盖范围"
+echo ""
+
+# 输出到 stdout + 日志文件
+exec > >(tee -a "${LOG_FILE}")
+exec 2>&1
+
+start_perf_stat() {
+    echo "--- 启动 perf stat ---"
+    sudo perf stat \
+        -a \
+        -e cycles,instructions,cache-references,cache-misses,branch-misses \
+        -e context-switches,cpu-migrations,page-faults \
+        --cgroup "${CGROUP_PATH}" \
+        -o "${STAT_OUTPUT}" \
+        -- sleep 86400 &
+    PERF_STAT_PID=$!
+    SLEEP_STAT_PID=$(pgrep -P "${PERF_STAT_PID}" sleep 2>/dev/null || true)
+    echo "    perf stat PID: ${PERF_STAT_PID}"
+}
+
+start_perf_record() {
+    echo "--- 启动 perf record ---"
+    sudo perf record \
+        -a -g \
+        -e cycles \
+        --cgroup "${CGROUP_PATH}" \
+        -o "${RECORD_FILE}" \
+        -- sleep 86400 &
+    PERF_RECORD_PID=$!
+    SLEEP_RECORD_PID=$(pgrep -P "${PERF_RECORD_PID}" sleep 2>/dev/null || true)
+    echo "    perf record PID: ${PERF_RECORD_PID}"
+}
+
+case "${PERF_MODE}" in
+    stat)
+        start_perf_stat
+        ;;
+    record)
+        start_perf_record
+        ;;
+    all)
+        start_perf_stat
+        start_perf_record
+        ;;
+esac
