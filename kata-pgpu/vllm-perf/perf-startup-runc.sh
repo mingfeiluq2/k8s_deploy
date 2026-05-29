@@ -83,8 +83,12 @@ get_container_pid() {
         local pid
         pid=$(sudo crictl inspect "${cid}" 2>/dev/null | sed -n 's/.*"pid": \([0-9]\+\).*/\1/p' | head -1)
         if [ -n "${pid}" ] && [ "${pid}" -gt 1 ] && [ -d "/proc/${pid}" ]; then
-            printf '%s\n' "${pid}"
-            return 0
+            local cname
+            cname=$(sudo crictl inspect "${cid}" 2>/dev/null | sed -n 's/.*"name": "\([^"]*\)".*/\1/p' | head -1)
+            if [ "${cname}" = "cuda-container" ]; then
+                printf '%s\n' "${pid}"
+                return 0
+            fi
         fi
     done
 
@@ -245,7 +249,7 @@ fi
 echo "    cgroup 路径已验证: ${CGROUP_FULL}"
 
 echo "==> 启动 vLLM 日志捕获"
-kubectl logs -f "${POD_NAME}" > "${VLLM_LOG}" 2>&1 &
+kubectl logs -f "${POD_NAME}" -c cuda-container > "${VLLM_LOG}" 2>&1 &
 MAIN_LOG_PID=$!
 echo "    日志 PID: ${MAIN_LOG_PID}"
 echo "    日志文件: ${VLLM_LOG}"
