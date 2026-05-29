@@ -270,7 +270,12 @@ start_perf_stat() {
         -o "${STAT_OUTPUT}" \
         --timeout $((STARTUP_TIMEOUT * 1000)) &
     PERF_STAT_PID=$!
-    echo "    perf stat PID: ${PERF_STAT_PID}"
+    sleep 0.5
+    if ! ps -p "${PERF_STAT_PID}" >/dev/null 2>&1; then
+        echo "警告: perf stat 可能启动失败"
+    else
+        echo "    perf stat PID: ${PERF_STAT_PID}"
+    fi
 }
 
 start_perf_record() {
@@ -282,7 +287,12 @@ start_perf_record() {
         -o "${RECORD_FILE}" \
         --timeout $((STARTUP_TIMEOUT * 1000)) &
     PERF_RECORD_PID=$!
-    echo "    perf record PID: ${PERF_RECORD_PID}"
+    sleep 0.5
+    if ! ps -p "${PERF_RECORD_PID}" >/dev/null 2>&1; then
+        echo "警告: perf record 可能启动失败"
+    else
+        echo "    perf record PID: ${PERF_RECORD_PID}"
+    fi
 }
 
 case "${PERF_MODE}" in
@@ -314,7 +324,7 @@ while true; do
         exit 1
     fi
 
-    if curl -s --max-time 3 "http://${POD_IP}:8000/health" >/dev/null 2>&1; then
+    if curl -s --fail --max-time 3 "http://${POD_IP}:8000/health" >/dev/null 2>&1; then
         T_READY=$(now_sec)
         echo ""
         echo "    vLLM 服务已就绪!"
