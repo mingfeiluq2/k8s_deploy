@@ -67,6 +67,50 @@ elapsed_since() {
 }
 
 # ============================================================
+# PID → Cgroup 反推
+# ============================================================
+get_container_pid() {
+    local pod_name="$1"
+    local sandbox_id
+    sandbox_id=$(sudo crictl pods --name "${pod_name}" -q 2>/dev/null)
+    if [ -z "${sandbox_id}" ]; then
+        echo "错误: 未找到 Pod sandbox: ${pod_name}" >&2
+        return 1
+    fi
+
+    local cid
+    for cid in $(sudo crictl ps --pod "${sandbox_id}" --state Running -q 2>/dev/null); do
+        local pid
+        pid=$(sudo crictl inspect "${cid}" 2>/dev/null | sed -n 's/.*"pid": \([0-9]\+\).*/\1/p' | head -1)
+        if [ -n "${pid}" ] && [ "${pid}" -gt 1 ] && [ -d "/proc/${pid}" ]; then
+            printf '%s\n' "${pid}"
+            return 0
+        fi
+    done
+
+    echo "错误: 未找到运行中容器的 PID" >&2
+    return 1
+}
+
+get_pod_cgroup_from_pid() {
+    local pid="$1"
+    local cgroup_line
+    cgroup_line=$(cat "/proc/${pid}/cgroup" 2>/dev/null)
+    if [ -z "${cgroup_line}" ]; then
+        echo "错误: 无法读取 /proc/${pid}/cgroup" >&2
+        return 1
+    fi
+
+    local full_path="${cgroup_line#0::}"
+    if [ -z "${full_path}" ] || [ "${full_path}" = "${cgroup_line}" ]; then
+        echo "错误: 意外的 cgroup 格式: ${cgroup_line}" >&2
+        return 1
+    fi
+
+    dirname "${full_path}"
+}
+
+# ============================================================
 # 准备工作
 # ============================================================
 mkdir -p "${LOG_DIR}"
@@ -171,3 +215,37 @@ for i in $(seq 1 300); do
 done
 
 K8S_TOTAL=$(elapsed_since "${T_APPLY}")
+
+# ============================================================
+# 阶段 2 准备: 获取 PID、cgroup、启动日志
+# ============================================================
+echo ""
+echo "==> 获取容器 PID"
+CONTAINER_PID=$(get_container_pid "${POD_NAME}")
+echo "    容器 PID: ${CONTAINER_PID}"
+
+echo "==> 获取 Pod IP"
+POD_IP=$(kubectl get pod "${POD_NAME}" -o jsonpath='{.status.podIP}' 2>/dev/null)
+if [ -z "${POD_IP}" ]; then
+    echo "错误: 无法获取 Pod IP"
+    exit 1
+fi
+echo "    Pod IP: ${POD_IP}"
+
+echo "==> PID → Cgroup 反推"
+CGROUP_PATH=$(get_pod_cgroup_from_pid "${CONTAINER_PID}")
+CGROUP_FULL="${CGROUP_ROOT}${CGROUP_PATH}"
+echo "    原始 cgroup 行: $(cat /proc/${CONTAINER_PID}/cgroup)"
+echo "    反推结果: ${CGROUP_PATH}"
+
+if [ ! -d "${CGROUP_FULL}" ]; then
+    echo "错误: cgroup 路径不存在: ${CGROUP_FULL}"
+    exit 1
+fi
+echo "    cgroup 路径已验证: ${CGROUP_FULL}"
+
+echo "==> 启动 vLLM 日志捕获"
+kubectl logs -f "${POD_NAME}" > "${VLLM_LOG}" 2>&1 &
+MAIN_LOG_PID=$!
+echo "    日志 PID: ${MAIN_LOG_PID}"
+echo "    日志文件: ${VLLM_LOG}"
