@@ -19,8 +19,7 @@ STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-600}
 MAIN_LOG_PID=""
 PERF_STAT_PID=""
 PERF_RECORD_PID=""
-SLEEP_STAT_PID=""
-SLEEP_RECORD_PID=""
+
 
 # ============================================================
 # 清理函数
@@ -32,15 +31,9 @@ cleanup() {
     # 停止 kubectl logs
     [ -n "${MAIN_LOG_PID}" ] && kill "${MAIN_LOG_PID}" 2>/dev/null || true
 
-    # 停止 perf stat
-    if [ -n "${SLEEP_STAT_PID}" ]; then
-        kill "${SLEEP_STAT_PID}" 2>/dev/null || true
-    fi
-
-    # 停止 perf record
-    if [ -n "${SLEEP_RECORD_PID}" ]; then
-        kill "${SLEEP_RECORD_PID}" 2>/dev/null || true
-    fi
+    # 停止 perf（SIGINT 使 perf 输出结果后退出）
+    [ -n "${PERF_STAT_PID}" ] && sudo kill -INT "${PERF_STAT_PID}" 2>/dev/null || true
+    [ -n "${PERF_RECORD_PID}" ] && sudo kill -INT "${PERF_RECORD_PID}" 2>/dev/null || true
 
     # 等待 perf 子进程退出
     [ -n "${PERF_STAT_PID}" ] && wait "${PERF_STAT_PID}" 2>/dev/null || true
@@ -275,9 +268,8 @@ start_perf_stat() {
         -e context-switches,cpu-migrations,page-faults \
         --cgroup "${CGROUP_PATH}" \
         -o "${STAT_OUTPUT}" \
-        -- sleep 86400 &
+        --timeout $((STARTUP_TIMEOUT * 1000)) &
     PERF_STAT_PID=$!
-    SLEEP_STAT_PID=$(pgrep -P "${PERF_STAT_PID}" sleep 2>/dev/null || true)
     echo "    perf stat PID: ${PERF_STAT_PID}"
 }
 
@@ -288,9 +280,8 @@ start_perf_record() {
         -e cycles \
         --cgroup "${CGROUP_PATH}" \
         -o "${RECORD_FILE}" \
-        -- sleep 86400 &
+        --timeout $((STARTUP_TIMEOUT * 1000)) &
     PERF_RECORD_PID=$!
-    SLEEP_RECORD_PID=$(pgrep -P "${PERF_RECORD_PID}" sleep 2>/dev/null || true)
     echo "    perf record PID: ${PERF_RECORD_PID}"
 }
 
