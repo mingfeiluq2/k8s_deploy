@@ -143,6 +143,10 @@ if ! perf stat true 2>/dev/null; then
     echo "提示: perf 可能权限不足，请以 root 运行或调整 /proc/sys/kernel/perf_event_paranoid"
 fi
 
+# 输出到 stdout + 日志文件
+exec > >(tee -a "${LOG_FILE}")
+exec 2>&1
+
 # ============================================================
 # 阶段 1: K8s 调度（分解为 3 个子阶段）
 # ============================================================
@@ -255,10 +259,6 @@ echo "==> 启动 perf 测量"
 echo "    模式: ${PERF_MODE}"
 echo "    注意: perf 测量起点为 cgroup 解析完成后，K8s 调度阶段不在覆盖范围"
 echo ""
-
-# 输出到 stdout + 日志文件
-exec > >(tee -a "${LOG_FILE}")
-exec 2>&1
 
 start_perf_stat() {
     echo "--- 启动 perf stat ---"
