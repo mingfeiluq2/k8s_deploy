@@ -1,0 +1,4 @@
+[submodule "kata-pgpu/vllm-perf"]
+	path = kata-pgpu/vllm-perf
+	url = https://github.com/mingfeiluq2/vllm-perf
+	branch = main
