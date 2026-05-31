@@ -63,6 +63,8 @@ spec:
           mountPath: /var/run/cdi
         - name: dev-vfio
           mountPath: /dev/vfio
+        - name: dev-iommu
+          mountPath: /dev/iommu
 
       volumes:
       - name: device-plugin
@@ -77,3 +79,7 @@ spec:
         hostPath:
           path: /dev/vfio
           type: DirectoryOrCreate
+      - name: dev-iommu
+        hostPath:
+          path: /dev/iommu
+          type: CharDevice
